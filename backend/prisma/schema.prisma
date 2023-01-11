@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  firstName String
+  lastName  String
+  email     String   @unique
+  password  String
+  role      Role     @default(CLIENT)
+  orders     Order[]
+}
+
+enum Role {
+  STAFF
+  ADMIN
+  CLIENT
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  name        String
+  description String
+  images      String[]
+  ratings     Float?
+  numInStock  Int
+  numReviews  Int
+  price       Int
+  category    String
+  orderItemID String
+  orderItem   OrderItem @relation(fields: [orderItemID], references: [id])
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  createdAt   DateTime    @default(now())
+  orderItems   OrderItem[]
+  status      OrderStatus @default(PENDING)
+  totalPrice  Int
+  isDelivered Boolean
+  isPaid      Boolean
+  shippingId  String
+  shipping    Shipping    @relation(fields: [shippingId], references: [id])
+}
+
+enum OrderStatus {
+  PENDING
+  DELIVERED
+  DENIED
+}
+
+model OrderItem {
+  id       String    @id @default(uuid())
+  quantity Int
+  orderId  String
+  order    Order     @relation(fields: [orderId], references: [id])
+  products  Product[]
+}
+
+model Shipping {
+  id         String  @id @default(uuid())
+  address1   String
+  address2   String?
+  country    String
+  city       String
+  postalCode String
+  phone      String
+  orders     Order[]
+}
