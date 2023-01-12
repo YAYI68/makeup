@@ -10,9 +10,14 @@ const books = [
     },
   ];
 
+  
+
 
 export const resolvers = {
     Query: {
-      books: () => books,
+      signup: (_,__,ctx) =>{
+         ctx.user.signUp();
+        return {token:'Hello from token'}
+      },
     },
   };
