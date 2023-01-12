@@ -1,5 +1,8 @@
 
-export const typeDefs = `#graphql
+import gql from "graphql-tag";
+
+gql
+export const userTypeDefs = gql`
 
  enum Role  {
   STAFF
@@ -25,3 +28,21 @@ type Query {
   signup: AuthPayload
 }
 `;
+
+
+
+
+
+
+
+
+
+
+export const userResolvers = {
+    Query: {
+      signup: (_,__,ctx) =>{
+         ctx.user.signUp();
+        return {token:'Hello from token'}
+      },
+    },
+  };

@@ -1,20 +1,27 @@
 import { userModel } from './models/user';
-import { resolvers } from './resolvers/user';
-import { typeDefs } from './typeDefs/user';
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
+import { ApolloServerPluginInlineTraceDisabled } from '@apollo/server/plugin/disabled';
 import { productModel } from './models/product';
+import { buildSubgraphSchema } from '@apollo/subgraph';
+import { userResolvers, userTypeDefs } from './schema/user';
+import { productResolvers, productTypeDefs } from './schema/product';
+import { merge } from 'lodash' 
+import { makeExecutableSchema } from '@graphql-tools/schema'
 
 
-
+const schema = buildSubgraphSchema([
+  { typeDefs:userTypeDefs, resolvers:userResolvers },
+  { typeDefs:productTypeDefs, resolvers:productResolvers },
+])
 
 
 const server = new ApolloServer({
-    typeDefs,
-    resolvers,
+      schema,
+      plugins: [ApolloServerPluginInlineTraceDisabled()],
   });
   
-
+  
 const runserver = async() => {
     const { url } = await startStandaloneServer(server, {
       context: async ({ req, res }) => ({
@@ -27,3 +34,14 @@ const runserver = async() => {
 }
 
 runserver();
+
+
+
+
+
+
+
+  // const schema = makeExecutableSchema({
+  //   typeDefs: [userTypeDefs,productTypeDefs],
+  //   resolvers:merge(userResolvers,productResolvers),
+  // })
