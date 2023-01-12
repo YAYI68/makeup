@@ -1,18 +1,19 @@
-import { userModel } from './models/user';
+
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 import { ApolloServerPluginInlineTraceDisabled } from '@apollo/server/plugin/disabled';
-import { productModel } from './models/product';
 import { buildSubgraphSchema } from '@apollo/subgraph';
+import { shippingResolvers, shippingTypeDefs } from './schema/shipping';
 import { userResolvers, userTypeDefs } from './schema/user';
 import { productResolvers, productTypeDefs } from './schema/product';
-import { merge } from 'lodash' 
-import { makeExecutableSchema } from '@graphql-tools/schema'
-
+import { orderResolvers, orderTypeDefs } from './schema/order';
+import { productModel,userModel,orderModel,shippingModel } from './models';
 
 const schema = buildSubgraphSchema([
   { typeDefs:userTypeDefs, resolvers:userResolvers },
   { typeDefs:productTypeDefs, resolvers:productResolvers },
+   {typeDefs:orderTypeDefs, resolvers:orderResolvers},
+   {typeDefs:shippingTypeDefs, resolvers:shippingResolvers}
 ])
 
 
@@ -27,6 +28,8 @@ const runserver = async() => {
       context: async ({ req, res }) => ({
         user: userModel,
         product:productModel,
+        order:orderModel,
+        shipping:shippingModel,
       }),
         listen: { port: 4000 },
       });

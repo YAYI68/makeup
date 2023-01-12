@@ -30,14 +30,6 @@ type Query {
 `;
 
 
-
-
-
-
-
-
-
-
 export const userResolvers = {
     Query: {
       signup: (_,__,ctx) =>{
