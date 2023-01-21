@@ -1,3 +1,4 @@
+import { getUserToken } from './utils/auth';
 
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
@@ -8,7 +9,6 @@ import { userResolvers, userTypeDefs } from './schema/user';
 import { productResolvers, productTypeDefs } from './schema/product';
 import { orderResolvers, orderTypeDefs } from './schema/order';
 import { productModel,userModel,orderModel,shippingModel } from './models';
-import { getUserToken } from './utils/auth';
 
 const schema = buildSubgraphSchema([
   { typeDefs:userTypeDefs, resolvers:userResolvers },
@@ -27,9 +27,14 @@ const server = new ApolloServer({
 const runserver = async() => {
     const { url } = await startStandaloneServer(server, {
       context: async ({ req }) =>{
-      const authUser = getUserToken(req)
+        let auth;
+        if(req.headers.authorization){
+          const [_,token]= req.headers.authorization.split(' ')
+          auth = getUserToken(token)
+        }
+        
         return({
-          auth:authUser,
+          auth:auth,
           user: userModel,
           product:productModel,
           order:orderModel,

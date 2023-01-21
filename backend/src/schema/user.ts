@@ -1,5 +1,6 @@
 
 import gql from "graphql-tag";
+import { authenticate } from "../utils/auth";
 
 
 export const userTypeDefs = gql`
@@ -50,11 +51,11 @@ type Mutation {
 
 export const userResolvers = {
     Query: {
-      me: async (_,__ ,ctx) => {
+      me: authenticate( async (_,__ ,ctx) => {
         console.log({user:ctx.auth})
         const profile = await ctx.user.singleUser(ctx.auth.email)
         return profile
-      }
+      })
     },
     Mutation:{
       signup: async(_,{input},ctx) =>{

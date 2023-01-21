@@ -39,16 +39,19 @@ export const userModel = {
         const token = createToken(user)
         return{token,email:user.email,role:user.role}
     },
-   async singleUser({email}){
+   async singleUser(email){
+    console.log(email)
       const user =  await prisma.user.findUnique({
         where: { email: email},
         select:{
+          id:true,
           role:true,
           email:true,
           firstName:true,
           lastName:true
         }
       })
+  
       return user
     }
 

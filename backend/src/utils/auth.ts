@@ -34,20 +34,12 @@ export const authorize = (role,next)=>(root,args,context,info)=>{
 
 export const createToken = (user) => jwt.sign({id:user.id, role:user.role,email:user.email}, process.env.JWT_SECRET)
 
-export const getUserToken = (req) => {   
-     const authorization = req.headers.authorization
-     if (authorization){
-       const [_,token] = authorization.split(' ')
-       const user = jwt.verify(token, process.env.JWT_SECRET)
-       if(!user){
-        throw new GraphQLError("Invalid email/password",{
-            extensions: { code: 'UNAUTHENTICATED' }
-        })
-       }
-       return user
-     }
-     throw new GraphQLError("User needs to login",{
-        extensions: { code: 'UNAUTHENTICATED' }
-    })
+export const getUserToken = token => {
+    try {
+      const user = jwt.verify(token, process.env.JWT_SECRET)
+      return user
+    } catch (e) {
+      return null
+    }
   
   }
