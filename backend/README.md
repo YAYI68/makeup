@@ -19,3 +19,14 @@ Once a type is defined in any of the  typeDefs it's can be redefined in another 
     typeDefs: [userTypeDefs,productTypeDefs],
     resolvers:merge(userResolvers,productResolvers),
   })
+
+
+Using authenticate a
+
+
+
+
+
+
+
+

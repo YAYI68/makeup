@@ -4,6 +4,8 @@ import { authenticate } from "../utils/auth";
 
 
 export const userTypeDefs = gql`
+  directive @uppercase on FIELD_DEFINITION
+
 
  enum Role  {
   STAFF
@@ -13,8 +15,8 @@ export const userTypeDefs = gql`
 
  type User {
   id    :    String
-  createdAt: String
-  firstName: String!
+  createdAt: String  
+  firstName: String!  @uppercase
   lastName:  String!
   email :    String !  
   password:  String!
