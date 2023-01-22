@@ -20,7 +20,6 @@ function upperDirectiveTransformer(schema,directiveName){
                     return result
                 }
             }
-
             return fieldConfig
         }
     })
