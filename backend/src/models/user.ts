@@ -85,6 +85,21 @@ export const userModel = {
       })
       return user
     },
+    async changeUserRole (id,input){
+      const user = await prisma.user.update({
+        where:{id:id},
+        data:{
+          role:input.role
+        },
+        select:{
+          id:true,
+          firstName:true,
+          lastName:true,
+          email:true,
+          role:true
+        }
+      })
+    },
     async changepassword (id,input){
       const password = await hashPassword(input.password)
       const user = await prisma.user.update({

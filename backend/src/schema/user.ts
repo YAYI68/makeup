@@ -59,6 +59,10 @@ export const userTypeDefs = gql`
   email :    String 
  }
 
+ input userRole{
+  role:Role
+ }
+
  type Success {
   message: String
  }
@@ -69,7 +73,7 @@ type Query {
 }
 type Mutation {
   signup(input:signUpInput): AuthPayload!
-  invite: User  @authorize(role:[ADMIN])  @authenticate
+  invite(id:String,input:userRole): User  @authorize(role:[ADMIN])  @authenticate
   logIn(input:signInput): AuthPayload!
   editUser(id:String,input:editUserInput): User! @authenticate
   changePassword(id:String,input:changePasswordInput): Success! @authenticate
@@ -105,6 +109,10 @@ export const userResolvers = {
       logIn: async(_,{input},ctx) =>{
         const user = await ctx.user.signIn(input)
        return user
+      },
+      invite: async(_,{id,input},ctx) =>{
+          const user = await ctx.user.changeUserRole(id,input)
+        return
       },
       editUser: async(_,{id,input},ctx) =>{
         if(id !== ctx.auth.id){
