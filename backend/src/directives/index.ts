@@ -1,26 +1,24 @@
-import { mapSchema, getDirective, MapperKind } from "@graphql-tools/utils";
-import { defaultFieldResolver } from "graphql";
+import { authenticationDirectiveTransformer, authorizationDirectiveTransformer } from "./auth";
+import { lowerDirectiveTransformer, upperDirectiveTransformer } from "./utils";
 
+export const transformers = [
+    {
+      name: 'lowercase',
+      transformer:lowerDirectiveTransformer
+    },
+    {
+      name: 'uppercase',
+      transformer:upperDirectiveTransformer
+    },
+    {
+      name:"authenticate",
+      transformer:authenticationDirectiveTransformer
+    },
+    {
+      name:"authorize",
+      transformer:authorizationDirectiveTransformer
+    }
+ 
+  ]
 
-function upperDirectiveTransformer(schema,directiveName){
-
-    return mapSchema(schema,{
-        [MapperKind.OBJECT_FIELD]: (fieldConfig)=>{
-            const upperDirective = getDirective(schema,fieldConfig,directiveName)?.[0]
-            console.log({upperDirective})
-
-            if(upperDirective){
-                const { resolve = defaultFieldResolver } = fieldConfig;
-
-                fieldConfig.resolve = async function (sources,args,context,info) {
-                    const result = resolve(sources,args,context,info)
-                    if( typeof result === "string"){
-                        return result.toUpperCase()
-                    }
-                    return result
-                }
-            }
-            return fieldConfig
-        }
-    })
-}
+  

@@ -41,5 +41,5 @@ export const getUserToken = token => {
     } catch (e) {
       return null
     }
-  
   }
+

@@ -1,9 +1,8 @@
 
 
 import prisma from "../db";
-import { createToken, hashPassword } from "../utils/auth";
 import { GraphQLError } from 'graphql';
-import { verifyPassword } from './../utils/auth';
+import { verifyPassword, hashPassword,createToken } from './../utils/auth';
 
 export const userModel = {
     async signUp(data){
@@ -39,7 +38,7 @@ export const userModel = {
         const token = createToken(user)
         return{token,email:user.email,role:user.role}
     },
-   async singleUser(email){
+   async userProfile(email){
     console.log(email)
       const user =  await prisma.user.findUnique({
         where: { email: email},
@@ -51,8 +50,50 @@ export const userModel = {
           lastName:true
         }
       })
-  
       return user
+    },
+
+    async getAllUser (){
+      const users = await prisma.user.findMany({
+        select:{
+          id:true,
+          role:true,
+          email:true,
+          firstName:true,
+          lastName:true
+        }
+      })
+      return users
+    },
+
+    async editProfile (id,input){
+      const user = await prisma.user.update({
+        where:{
+          id:id,
+        },
+        data:{
+         firstName:input.firstName,
+         lastName:input.lastName,
+         email:input.email 
+        },
+        select:{
+          id:true,
+          firstName:true,
+          lastName:true,
+          email:true,
+        }
+      })
+      return user
+    },
+    async changepassword (id,input){
+      const password = await hashPassword(input.password)
+      const user = await prisma.user.update({
+        where:{id:id},
+        data:{
+          password:password
+        }
+      })
+      return {message:'User password change successfully'}
     }
 
 }

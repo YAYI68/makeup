@@ -1,5 +1,4 @@
 import { getUserToken } from './utils/auth';
-
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 import { ApolloServerPluginInlineTraceDisabled } from '@apollo/server/plugin/disabled';
@@ -9,8 +8,10 @@ import { userResolvers, userTypeDefs } from './schema/user';
 import { productResolvers, productTypeDefs } from './schema/product';
 import { orderResolvers, orderTypeDefs } from './schema/order';
 import { productModel,userModel,orderModel,shippingModel } from './models';
+import { transformers } from './directives';
+import { combineSchemaDirectives } from './utils/directives';
 
-const schema = buildSubgraphSchema([
+ const schema = buildSubgraphSchema([
   { typeDefs:userTypeDefs, resolvers:userResolvers },
   { typeDefs:productTypeDefs, resolvers:productResolvers },
    {typeDefs:orderTypeDefs, resolvers:orderResolvers},
@@ -18,10 +19,17 @@ const schema = buildSubgraphSchema([
 ])
 
 
+ const schemaDirective =  combineSchemaDirectives(transformers,schema)
+
+
+
 const server = new ApolloServer({
-      schema,
+      schema:schemaDirective,
       plugins: [ApolloServerPluginInlineTraceDisabled()],
+      
   });
+
+
   
   
 const runserver = async() => {
@@ -32,7 +40,6 @@ const runserver = async() => {
           const [_,token]= req.headers.authorization.split(' ')
           auth = getUserToken(token)
         }
-        
         return({
           auth:auth,
           user: userModel,
@@ -43,6 +50,7 @@ const runserver = async() => {
         
       },
         listen: { port: 4000 },
+        
       });
       console.log(`🚀  Server ready at: ${url}`);
 }

@@ -1,10 +1,18 @@
+import { authenticate } from './../utils/auth';
 
+
+
+import { GraphQLError } from "graphql";
 import gql from "graphql-tag";
-import { authenticate } from "../utils/auth";
 
 
 export const userTypeDefs = gql`
-  directive @uppercase on FIELD_DEFINITION
+  directive @uppercase(text:String = "Hello") on FIELD_DEFINITION
+  directive @lowercase on FIELD_DEFINITION
+
+  directive @authenticate on FIELD_DEFINITION
+  directive @authorize(role:[Role]) on FIELD_DEFINITION
+
 
 
  enum Role  {
@@ -16,23 +24,23 @@ export const userTypeDefs = gql`
  type User {
   id    :    String
   createdAt: String  
-  firstName: String!  @uppercase
-  lastName:  String!
+  firstName: String!  @uppercase 
+  lastName:  String!  @lowercase 
   email :    String !  
   password:  String!
   role  :    Role     
  }
 
  input  signUpInput {
-   firstName: String
-   lastName: String
-   email: String
-   password: String
+   firstName: String!
+   lastName: String!
+   email: String!
+   password: String!
  }
 
  input signInput {
-     email: String
-     password: String
+     email: String!
+     password: String!
  }
 
  type AuthPayload{
@@ -41,23 +49,53 @@ export const userTypeDefs = gql`
   role:String
  }
 
+ input changePasswordInput{
+  password: String!
+ }
+
+ input editUserInput{
+  firstName: String
+  lastName:  String
+  email :    String 
+ }
+
+ type Success {
+  message: String
+ }
+
 type Query {
-  me: User
+  me(email:String!): User @authenticate 
+  allUser:[User]!   @authorize(role:[ADMIN,STAFF]) @authenticate  
 }
 type Mutation {
-  signup(input:signUpInput): AuthPayload
-  logIn(input:signInput): AuthPayload
+  signup(input:signUpInput): AuthPayload!
+  invite: User  @authorize(role:[ADMIN])  @authenticate
+  logIn(input:signInput): AuthPayload!
+  editUser(id:String,input:editUserInput): User! @authenticate
+  changePassword(id:String,input:changePasswordInput): Success! @authenticate
 }
 `;
 
 
 export const userResolvers = {
     Query: {
-      me: authenticate( async (_,__ ,ctx) => {
-        console.log({user:ctx.auth})
-        const profile = await ctx.user.singleUser(ctx.auth.email)
+      me:async (_,{email},ctx) => {
+        if(email !== ctx.auth.email){
+          throw new GraphQLError("User cannot access this profile",{
+            extensions: { code: 'AUTHORIZATION_ERROR' }
+          })
+        }
+        const profile = await ctx.user.userProfile(ctx.auth.email)
         return profile
-      })
+      },
+      invite:async (_,__,ctx) => {
+        const profile = await ctx.user.userProfile(ctx.auth.email)
+        return profile
+      },
+      allUser: async(_,__,ctx)=>{
+         const users = await ctx.user.getAllUser()
+         return users
+      }
     },
     Mutation:{
       signup: async(_,{input},ctx) =>{
@@ -67,6 +105,27 @@ export const userResolvers = {
       logIn: async(_,{input},ctx) =>{
         const user = await ctx.user.signIn(input)
        return user
+      },
+      editUser: async(_,{id,input},ctx) =>{
+        if(id !== ctx.auth.id){
+          throw new GraphQLError("User cannot edit this profile ",{
+            extensions: { code: 'AUTHORIZATION_ERROR' }
+          })
+        }
+       const user = await ctx.user.editProfile(id,input)
+       return user
+      },
+      changePassword: async(_,__,{id,input,ctx})=>{
+        if(id !== ctx.auth.id){
+          throw new GraphQLError("User cannot change Password ",{
+            extensions: { code: 'AUTHORIZATION_ERROR' }
+          })
+        }
+        const result = await ctx.user.changePassword(id,input)
+        return result 
       }
     }
   };
+
+
+ 
