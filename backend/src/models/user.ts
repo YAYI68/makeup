@@ -99,6 +99,7 @@ export const userModel = {
           role:true
         }
       })
+      return user
     },
     async changepassword (id,input){
       const password = await hashPassword(input.password)
@@ -109,6 +110,12 @@ export const userModel = {
         }
       })
       return {message:'User password change successfully'}
+    },
+    async userDelete(id){
+         const user = await prisma.user.delete({
+          where:{id:id},
+         })
+         return {message:'User deleted successfully'}
     }
 
 }

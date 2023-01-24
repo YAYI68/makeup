@@ -77,6 +77,7 @@ type Mutation {
   logIn(input:signInput): AuthPayload!
   editUser(id:String,input:editUserInput): User! @authenticate
   changePassword(id:String,input:changePasswordInput): Success! @authenticate
+  deleteUser(id:String):Success @authenticate 
 }
 `;
 
@@ -89,10 +90,6 @@ export const userResolvers = {
             extensions: { code: 'AUTHORIZATION_ERROR' }
           })
         }
-        const profile = await ctx.user.userProfile(ctx.auth.email)
-        return profile
-      },
-      invite:async (_,__,ctx) => {
         const profile = await ctx.user.userProfile(ctx.auth.email)
         return profile
       },
@@ -112,10 +109,10 @@ export const userResolvers = {
       },
       invite: async(_,{id,input},ctx) =>{
           const user = await ctx.user.changeUserRole(id,input)
-        return
+        return user
       },
-      editUser: async(_,{id,input},ctx) =>{
-        if(id !== ctx.auth.id){
+      editUser: async(_,{id,input},ctx) =>{    
+        if(id !== ctx.auth.id && ctx.auth.role !== 'ADMIN' && ctx.auth.role !== 'STAFF'){
           throw new GraphQLError("User cannot edit this profile ",{
             extensions: { code: 'AUTHORIZATION_ERROR' }
           })
@@ -123,7 +120,7 @@ export const userResolvers = {
        const user = await ctx.user.editProfile(id,input)
        return user
       },
-      changePassword: async(_,__,{id,input,ctx})=>{
+      changePassword: async(_,__,{id,input},ctx)=>{
         if(id !== ctx.auth.id){
           throw new GraphQLError("User cannot change Password ",{
             extensions: { code: 'AUTHORIZATION_ERROR' }
@@ -131,6 +128,15 @@ export const userResolvers = {
         }
         const result = await ctx.user.changePassword(id,input)
         return result 
+      },
+      deleteUser:async(_,{id},ctx)=>{
+           if(id !== ctx.auth.id){
+            throw new GraphQLError("User cannot delete this user ",{
+              extensions: { code: 'AUTHORIZATION_ERROR' }
+            })
+           }
+           const result = await ctx.user.userDelete(id)
+           return result
       }
     }
   };
